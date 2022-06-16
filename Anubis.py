@@ -3,11 +3,13 @@
 #############      I've borrowed a function (serial_ports()) from a guy in stack overflow whome I can't remember his name, so I gave hime the copyrights of this function, thank you  ########
 
 
+from enum import Enum, auto
 import sys
 import glob
 import serial
 
 import Python_Coloring
+import CSharp_Coloring
 from PyQt5 import QtCore
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import *
@@ -42,6 +44,13 @@ def serial_ports():
     return result
 
 
+## ENUM of the different languages supported by the IDE
+class Languages(Enum):
+    CSHARP = auto()
+    PYTHON = auto()
+
+# The default language is python
+curr_language = Languages.PYTHON
 #
 #
 #
@@ -102,6 +111,9 @@ class text_widget(QWidget):
 #
 
 
+# Check if the opened file is a python file
+def is_py_file(file_name):
+    return file_name[-2:] == 'py'
 
 #
 #
@@ -114,9 +126,10 @@ class text_widget(QWidget):
 #
 class Widget(QWidget):
 
-    def __init__(self):
+    def __init__(self, ui):
         super().__init__()
         self.initUI()
+        self.ui = ui
 
     def initUI(self):
 
@@ -185,7 +198,8 @@ class Widget(QWidget):
     # defining a new Slot (takes string) to save the text inside the first text editor
     @pyqtSlot(str)
     def Saving(s):
-        with open('main.py', 'w') as f:
+        file_name = 'main.py' if curr_language == Languages.PYTHON else 'main.cs'
+        with open(file_name, 'w') as f:
             TEXT = text.toPlainText()
             f.write(TEXT)
 
@@ -200,6 +214,10 @@ class Widget(QWidget):
         nn = self.sender().model().filePath(index)
         nn = tuple([nn])
 
+        if is_py_file(nn[0]):
+            UI.highlight_py(self.ui)
+        else:
+            UI.highlight_cs(self.ui)
         if nn[0]:
             f = open(nn[0],'r')
             with f:
@@ -256,7 +274,7 @@ class UI(QMainWindow):
         # creating menu items
         menu = self.menuBar()
 
-        # I have three menu items
+        # I have four menu items
         filemenu = menu.addMenu('File')
         Port = menu.addMenu('Port')
         Run = menu.addMenu('Run')
@@ -306,7 +324,7 @@ class UI(QMainWindow):
         self.setWindowIcon(QtGui.QIcon('Anubis.png'))
         
 
-        widget = Widget()
+        widget = Widget(self)
 
         self.setCentralWidget(widget)
         self.show()
@@ -343,14 +361,25 @@ class UI(QMainWindow):
     # I made this function to open a file and exhibits it to the user in a text editor
     def open(self):
         file_name = QFileDialog.getOpenFileName(self,'Open File','/home')
-
+        if is_py_file(file_name[0]):
+            self.highlight_py()
+        else:
+            self.highlight_cs()
         if file_name[0]:
             f = open(file_name[0],'r')
             with f:
                 data = f.read()
             self.Open_Signal.reading.emit(data)
 
+    def highlight_cs(self):
+        global curr_language
+        curr_language = Languages.CSHARP
+        CSharp_Coloring.CSharpHighlighter(text)
 
+    def highlight_py(self):
+        global curr_language
+        curr_language = Languages.PYTHON
+        Python_Coloring.PythonHighlighter(text)
 #
 #
 ############ end of Class ############
