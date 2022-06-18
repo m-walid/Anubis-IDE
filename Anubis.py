@@ -16,6 +16,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from pathlib import Path
 
+
 def serial_ports():
     """ Lists serial port names
         :raises EnvironmentError:
@@ -44,10 +45,11 @@ def serial_ports():
     return result
 
 
-## ENUM of the different languages supported by the IDE
+# ENUM of the different languages supported by the IDE
 class Languages(Enum):
-    CSHARP = auto()
     PYTHON = auto()
+    CSHARP = auto()
+
 
 # The default language is python
 curr_language = Languages.PYTHON
@@ -60,6 +62,8 @@ curr_language = Languages.PYTHON
 #
 #
 #
+
+
 class Signal(QObject):
 
     # initializing a Signal which will take (string) as an input
@@ -74,6 +78,7 @@ class Signal(QObject):
 ############ end of Class ############
 #
 #
+
 
 # Making text editor as A global variable (to solve the issue of being local to (self) in widget class)
 text = QTextEdit
@@ -90,10 +95,13 @@ text2 = QTextEdit
 #
 
 # this class is made to connect the QTab with the necessary layouts
+
+
 class text_widget(QWidget):
     def __init__(self):
         super().__init__()
         self.itUI()
+
     def itUI(self):
         global text
         text = QTextEdit()
@@ -101,7 +109,6 @@ class text_widget(QWidget):
         hbox = QHBoxLayout()
         hbox.addWidget(text)
         self.setLayout(hbox)
-
 
 
 #
@@ -124,6 +131,8 @@ def is_py_file(file_name):
 #
 #
 #
+
+
 class Widget(QWidget):
 
     def __init__(self, ui):
@@ -157,7 +166,8 @@ class Widget(QWidget):
         # NoDotAndDotDot => Do not list the special entries "." and "..".
         # AllDirs =>List all directories; i.e. don't apply the filters to directory names.
         # Files => List files.
-        self.dirModel.setFilter(QDir.NoDotAndDotDot | QDir.AllDirs | QDir.Files)
+        self.dirModel.setFilter(QDir.NoDotAndDotDot |
+                                QDir.AllDirs | QDir.Files)
         self.treeview.setModel(self.dirModel)
         self.treeview.setRootIndex(self.dirModel.index(path))
         self.treeview.clicked.connect(self.on_clicked)
@@ -219,7 +229,7 @@ class Widget(QWidget):
         else:
             UI.highlight_cs(self.ui)
         if nn[0]:
-            f = open(nn[0],'r')
+            f = open(nn[0], 'r')
             with f:
                 data = f.read()
                 text.setText(data)
@@ -233,6 +243,8 @@ class Widget(QWidget):
 # defining a new Slot (takes string)
 # Actually I could connect the (mainwindow) class directly to the (widget class) but I've made this function in between for futuer use
 # All what it do is to take the (input string) and establish a connection with the widget class, send the string to it
+
+
 @pyqtSlot(str)
 def reading(s):
     b = Signal()
@@ -240,6 +252,8 @@ def reading(s):
     b.reading.emit(s)
 
 # same as reading Function
+
+
 @pyqtSlot(str)
 def Openning(s):
     b = Signal()
@@ -254,6 +268,8 @@ def Openning(s):
 #
 #
 #
+
+
 class UI(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -274,7 +290,7 @@ class UI(QMainWindow):
         # creating menu items
         menu = self.menuBar()
 
-        # I have four menu items
+        # I have three menu items
         filemenu = menu.addMenu('File')
         Port = menu.addMenu('Port')
         Run = menu.addMenu('Run')
@@ -312,17 +328,14 @@ class UI(QMainWindow):
         Open_Action.setShortcut("Ctrl+O")
         Open_Action.triggered.connect(self.open)
 
-
         filemenu.addAction(Save_Action)
         filemenu.addAction(Close_Action)
         filemenu.addAction(Open_Action)
-
 
         # Seting the window Geometry
         self.setGeometry(200, 150, 600, 500)
         self.setWindowTitle('Anubis IDE')
         self.setWindowIcon(QtGui.QIcon('Anubis.png'))
-        
 
         widget = Widget(self)
 
@@ -334,7 +347,7 @@ class UI(QMainWindow):
         if self.port_flag == 0:
             mytext = text.toPlainText()
         #
-        ##### Compiler Part
+        # Compiler Part
         #
 #            ide.create_file(mytext)
 #            ide.upload_file(self.portNo)
@@ -343,30 +356,29 @@ class UI(QMainWindow):
         else:
             text2.append("Please Select Your Port Number First")
 
-
     # this function is made to get which port was selected by the user
+
     @QtCore.pyqtSlot()
     def PortClicked(self):
         action = self.sender()
         self.portNo = action.text()
         self.port_flag = 0
 
-
-
     # I made this function to save the code into a file
+
     def save(self):
         self.b.reading.emit("name")
 
-
     # I made this function to open a file and exhibits it to the user in a text editor
+
     def open(self):
-        file_name = QFileDialog.getOpenFileName(self,'Open File','/home')
+        file_name = QFileDialog.getOpenFileName(self, 'Open File', '/home')
         if is_py_file(file_name[0]):
             self.highlight_py()
         else:
             self.highlight_cs()
         if file_name[0]:
-            f = open(file_name[0],'r')
+            f = open(file_name[0], 'r')
             with f:
                 data = f.read()
             self.Open_Signal.reading.emit(data)
@@ -385,6 +397,7 @@ class UI(QMainWindow):
 ############ end of Class ############
 #
 #
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
